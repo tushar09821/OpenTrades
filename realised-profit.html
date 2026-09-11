@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Realised Profit — Trading Strategy Simulator</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+    <ul class="nav-list">
+      <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
+      <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
+      <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
+      <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
+      <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <h1>Trading Strategy Simulator</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="date-range">🗓️ <span>01 Sep 2026 – 09 Sep 2026</span></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-head-row">
+        <div class="page-head">
+          <h2>Realised Profit</h2>
+          <p>History of closed trades and overall strategy performance.</p>
+        </div>
+        <button class="btn" id="exportCsvBtn">⬇ Export CSV</button>
+      </div>
+
+      <div class="kpi-row" id="kpiRow"></div>
+
+      <div class="panel">
+        <div class="toolbar" style="margin-bottom:14px;">
+          <div class="search-box">🔎 <input type="text" id="searchBox" placeholder="Search by symbol…" /></div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="realisedTable"></table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script src="utils.js"></script>
+<script src="shell.js"></script>
+<script src="realised.js"></script>
+</body>
+</html>

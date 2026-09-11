@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Open Trades — Trading Strategy Simulator</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+     <ul class="nav-list">
+      <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
+      <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
+      <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
+      <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
+      <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <h1>Trading Strategy Simulator</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn" id="backBtn">← Overview</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-head-row">
+        <div class="page-head">
+          <h2>Open Trades</h2>
+          <p>Track your active positions and their current P&amp;L.</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn" id="syncPricesBtn">🔄 Sync Prices</button>
+          <button class="btn" id="exportCsvBtn">⬇ Export CSV</button>
+          <button class="btn btn-primary" id="openAddTradeBtn">＋ Add Trade</button>
+        </div>
+      </div>
+
+      <div class="sync-note" id="syncNote" style="margin-bottom:16px;"></div>
+
+      <div class="kpi-row" id="kpiRow" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;"></div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="toolbar">
+          <div class="search-box">🔎 <input type="text" id="searchBox" placeholder="Search by symbol…" /></div>
+          <button class="btn btn-sm" id="filtersBtn">☰ Filters</button>
+        </div>
+        <div class="filters-bar" id="filtersBar">
+          <select id="filterDirection">
+            <option value="">All Directions</option>
+            <option value="Long">Long</option>
+            <option value="Short">Short</option>
+          </select>
+          <select id="filterAssetType">
+            <option value="">All Asset Types</option>
+            <option value="Cash/Future">Cash/Future</option>
+            <option value="Options">Options</option>
+          </select>
+        </div>
+
+        <div class="panel-head" style="margin-top:16px;">
+          <h3 id="openTradesHeading">Open Trades</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="openTradesTable"></table>
+        </div>
+        <div class="totals-row" id="openTotalsRow"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Recent Activity</h3></div>
+        <div class="table-wrap">
+          <table class="data-table" id="actionsLogTable"></table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- datalists for symbol / strategy autocomplete -->
+<datalist id="symbolList"></datalist>
+<datalist id="strategyList"></datalist>
+
+<!-- ============ ADD TRADE MODAL ============ -->
+<div class="modal-overlay" id="addTradeModalOverlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="mh-ico">＋</div>
+        <h3>Add Trade</h3>
+        <p>Enter the trade details to track in your strategy.</p>
+      </div>
+      <button class="modal-close" id="addTradeModalClose">✕</button>
+    </div>
+    <div class="modal-body two-col">
+      <div>
+        <div class="modal-section-title">Trade Details</div>
+        <div class="field">
+          <label for="fSymbol">Symbol *</label>
+          <input id="fSymbol" list="symbolList" placeholder="Search symbol (e.g. RELIANCE)" autocomplete="off" />
+          <div class="hint" id="fSymbolPriceHint"></div>
+        </div>
+        <div class="field">
+          <label>Trade Type *</label>
+          <div class="segmented" id="assetDirectionToggle">
+            <button type="button" data-val="Long" class="active" id="btnBuy">BUY</button>
+            <button type="button" data-val="Short" id="btnSell">SELL</button>
+          </div>
+          <select id="fDirection" style="display:none;">
+            <option value="Long">Long</option>
+            <option value="Short">Short</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fQuantity">Quantity *</label>
+            <input id="fQuantity" type="number" min="0" step="1" placeholder="10" />
+          </div>
+          <div class="field">
+            <label for="fEntryPrice">Entry Price *</label>
+            <input id="fEntryPrice" type="number" min="0" step="0.01" placeholder="1420.00" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="fInvested">Invested Value (with leverage) <span class="opt">ⓘ</span></label>
+          <input id="fInvested" type="number" min="0" step="1" placeholder="85000" />
+        </div>
+        <div class="field">
+          <label for="fEntryDate">Buy Date *</label>
+          <input id="fEntryDate" type="datetime-local" />
+        </div>
+        <div class="field">
+          <label>Asset Type</label>
+          <div class="segmented" id="assetTypeToggle">
+            <button type="button" data-val="Cash/Future" class="active">Cash/Future</button>
+            <button type="button" data-val="Options">Options</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="modal-section-title">Risk Management</div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fStopLoss">Stop Loss <span class="opt">(optional)</span></label>
+            <input id="fStopLoss" type="number" min="0" step="0.01" placeholder="1380.00" />
+          </div>
+          <div class="field">
+            <label for="fTarget">Target Price <span class="opt">(optional)</span></label>
+            <input id="fTarget" type="number" min="0" step="0.01" placeholder="1500.00" />
+          </div>
+        </div>
+        <div id="plPreviewBox" class="hint" style="display:none;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;"></div>
+
+        <div class="modal-section-title" style="margin-top:8px;">Strategy &amp; Notes</div>
+        <div class="field">
+          <label for="fStrategy">Strategy Name *</label>
+          <input id="fStrategy" list="strategyList" placeholder="e.g. EMA Crossover" />
+        </div>
+        <div class="field">
+          <label for="fNotes">Note <span class="opt">(optional)</span></label>
+          <textarea id="fNotes" maxlength="500" placeholder="Long term position. Good sector outlook."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="form-error" id="formError" style="padding:0 22px;"></div>
+    <div class="modal-footer">
+      <button class="btn" id="addTradeCancel">Cancel</button>
+      <button class="btn btn-primary" id="addTradeBtn">Add Trade</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CLOSE TRADE MODAL ============ -->
+<div class="modal-overlay" id="closeModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3>Close Trade</h3>
+      </div>
+      <button class="modal-close" id="closeModalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="closeAvatar" style="width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;">R</div>
+          <div>
+            <div style="font-weight:700;" id="closeSymbol">—</div>
+            <div class="muted" style="font-size:11.5px;" id="closeAssetType">—</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="muted" style="font-size:11px;">Current Price</div>
+          <div>₹<span id="closeCurrentPrice">0</span> <span id="closeCurrentPct"></span></div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="closeSellDate">Sell Date *</label>
+          <input id="closeSellDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="closeExitPrice">Exit Price *</label>
+          <input id="closeExitPrice" type="number" min="0" step="0.01" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="closeExitValue">Exit Value (with leverage) <span class="opt">ⓘ</span></label>
+        <input id="closeExitValue" type="number" min="0" step="1" />
+      </div>
+      <div class="field">
+        <label for="closeNotes">Notes <span class="opt">(optional)</span></label>
+        <textarea id="closeNotes" maxlength="500" placeholder="Closed as per strategy rules."></textarea>
+      </div>
+      <div class="form-error" id="closeError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="closeCancel">Cancel</button>
+      <button class="btn btn-primary" id="closeConfirm">Close Trade</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EDIT TRADE MODAL ============ -->
+<div class="modal-overlay" id="editModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3>Edit Trade</h3><p>Update price, risk levels or notes.</p></div>
+      <button class="modal-close" id="editModalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field">
+          <label for="eEntryPrice">Entry Price *</label>
+          <input id="eEntryPrice" type="number" min="0" step="0.01" />
+        </div>
+        <div class="field">
+          <label for="eQuantity">Quantity *</label>
+          <input id="eQuantity" type="number" min="0" step="1" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="eTarget">Target Price <span class="opt">(optional)</span></label>
+          <input id="eTarget" type="number" min="0" step="0.01" />
+        </div>
+        <div class="field">
+          <label for="eStopLoss">Stop Loss <span class="opt">(optional)</span></label>
+          <input id="eStopLoss" type="number" min="0" step="0.01" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="eLtp">LTP</label>
+        <input id="eLtp" type="number" min="0" step="0.01" />
+      </div>
+      <div class="field">
+        <label for="eNotes">Notes <span class="opt">(optional)</span></label>
+        <textarea id="eNotes" maxlength="500"></textarea>
+      </div>
+      <div class="form-error" id="editError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="editCancel">Cancel</button>
+      <button class="btn btn-primary" id="editSave">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script src="utils.js"></script>
+<script src="shell.js"></script>
+<script src="open-trades.js"></script>
+<script>
+  // Wire the BUY/SELL segmented control to the hidden fDirection select the
+  // existing open-trades.js logic reads from.
+  document.getElementById("assetDirectionToggle").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-val]");
+    if (!btn) return;
+    document.querySelectorAll("#assetDirectionToggle button").forEach((b) => b.classList.toggle("active", b === btn));
+    const sel = document.getElementById("fDirection");
+    sel.value = btn.dataset.val;
+    sel.dispatchEvent(new Event("change"));
+  });
+</script>
+</body>
+</html>

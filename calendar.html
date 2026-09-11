@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calendar — Trading Strategy Simulator</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+ <ul class="nav-list">
+      <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
+      <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
+      <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
+      <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
+      <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <h1>Trading Strategy Simulator</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-sm" id="calToday">Today</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-head">
+        <h2>Trade Calendar</h2>
+        <p>See your realised P&amp;L laid out day by day, month by month.</p>
+      </div>
+
+      <div class="panel">
+        <div class="cal-head">
+          <div class="cal-nav">
+            <button class="icon-btn" id="calPrev">‹</button>
+            <div class="cal-month-label" id="calMonthLabel">—</div>
+            <button class="icon-btn" id="calNext">›</button>
+          </div>
+          <div class="cal-legend">
+            <span><i style="background:var(--green-soft);border:1px solid var(--green);"></i> Profit day</span>
+            <span><i style="background:var(--red-soft);border:1px solid var(--red);"></i> Loss day</span>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="cal-summary" id="calSummary"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ DAY DETAIL MODAL ============ -->
+<div class="modal-overlay" id="dayModalOverlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <h3 id="dayModalTitle">—</h3>
+        <p id="dayModalSub"></p>
+      </div>
+      <button class="modal-close" id="dayModalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="table-wrap">
+        <table class="data-table" id="dayModalTable"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script src="utils.js"></script>
+<script src="shell.js"></script>
+<script src="calendar.js"></script>
+</body>
+</html>

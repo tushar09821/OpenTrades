@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Realised Profit by Symbol — Trading Strategy Simulator</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+  <ul class="nav-list">
+      <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
+      <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
+      <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
+      <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
+      <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
+    </div>
+  </aside>
+
+  <main class="main">   
+    <div class="content">
+      <div class="pill-tabs">
+        <button class="pill-tab active" data-side="all">All Trades</button>
+        <button class="pill-tab" data-side="Long">↑ Long Side</button>
+        <button class="pill-tab" data-side="Short">↓ Short Side</button>
+      </div>
+
+      <div class="kpi-row" id="kpiRow1" style="grid-template-columns:repeat(5,1fr);"></div>
+
+      <div class="panel" id="symbolPanel" style="margin-top:20px;">
+        <div class="page-head-row" style="margin-bottom:14px;">
+          <h3 style="margin:0;font-size:15px;">Realised Profit by Symbol</h3>
+          <div class="toolbar" style="margin:0;">
+            <div class="search-box">🔎 <input type="text" id="searchBox" placeholder="Search symbol…" /></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="symbolTable"></table>
+        </div>
+        <div class="pagination">
+          <span class="page-info" id="resultsCount"></span>
+          <div class="page-controls" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ SYMBOL DETAIL MODAL ============ -->
+<div class="modal-overlay" id="symbolModalOverlay">
+  <div class="modal modal-xl">
+    <div class="symbol-modal-head">
+      <div class="sym-id">
+        <span class="sym-avatar" id="symAvatarBig">R</span>
+        <div>
+          <h3 id="symTitle">—</h3>
+          <p id="symSubtitle">—</p>
+        </div>
+      </div>
+      <button class="modal-close" id="symbolModalClose">✕</button>
+    </div>
+    <div class="mini-stat-row" id="symMiniStats"></div>
+
+    <div class="symbol-modal-toolbar">
+      <h4>Trades</h4>
+      <div class="toolbar-right">
+        <div class="pill-tabs compact" style="margin:0;">
+          <button class="pill-tab modal-side-tab active" data-side="all">All</button>
+          <button class="pill-tab modal-side-tab" data-side="Long">Long</button>
+          <button class="pill-tab modal-side-tab" data-side="Short">Short</button>
+        </div>
+        <div class="range-chip">🗓️ 01 Apr 2025 – 30 Sep 2025</div>
+      </div>
+    </div>
+    <div class="modal-body" style="padding-top:8px;">
+      <div class="table-wrap">
+        <table class="data-table" id="symTradesTable"></table>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;align-items:center;">
+      <span class="muted" id="symTradesCount" style="font-size:12px;"></span>
+      <button class="btn btn-primary" id="symbolModalCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script src="utils.js"></script>
+<script src="shell.js"></script>
+<script src="by-symbol.js"></script>
+</body>
+</html>

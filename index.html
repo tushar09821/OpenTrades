@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Overview — Trading Strategy Simulator</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+    <ul class="nav-list">
+      <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
+      <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
+      <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
+      <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
+      <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <h1>Trading Strategy Simulator</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="date-range">🗓️ <span id="rangeLabel">Last 7 days</span></div>
+        <button class="icon-btn" title="Refresh" id="refreshBtn">⟳</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-head">
+        <h2>Strategy Overview</h2>
+        <p>Track your strategy performance, open trades and realised profits.</p>
+      </div>
+
+      <div class="kpi-row" id="kpiRow"><!-- filled by overview.js --></div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Portfolio Value</h3>
+            <select id="rangeSelect" style="background:var(--panel-2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 9px;font-size:12px;">
+              <option value="7">7D</option>
+              <option value="30">30D</option>
+              <option value="90">90D</option>
+            </select>
+          </div>
+          <canvas id="portfolioChart" height="230"></canvas>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Performance</h3></div>
+          <div class="stat-list" id="perfStats"><!-- filled by overview.js --></div>
+        </div>
+      </div>
+
+      <div class="page-head" style="margin-top:26px;margin-bottom:0;">
+        <h2 style="font-size:15px;">Quick Actions</h2>
+      </div>
+      <div class="quick-actions">
+        <button class="qa-card" id="qaAddTrade">
+          <span class="qa-ico">➕</span>
+          <span>
+            <div class="qa-title">Add Trade</div>
+            <div class="qa-sub">Start a new trade</div>
+          </span>
+        </button>
+        <a class="qa-card" href="open-trades.html">
+          <span class="qa-ico">📋</span>
+          <span>
+            <div class="qa-title">View Trades</div>
+            <div class="qa-sub">See all open and closed trades</div>
+          </span>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script src="utils.js"></script>
+<script src="shell.js"></script>
+<script src="overview.js"></script>
+</body>
+</html>
