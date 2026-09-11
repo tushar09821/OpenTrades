@@ -11,7 +11,7 @@
 
   <aside class="sidebar">
     <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
-  <ul class="nav-list">
+    <ul class="nav-list">
       <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
       <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
       <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
@@ -23,15 +23,27 @@
     </div>
   </aside>
 
-  <main class="main">   
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <h1>Trading Strategy Simulator</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="date-range">🗓️ <span>01 Apr 2025 – 30 Sep 2025</span></div>
+      </div>
+    </div>
+
     <div class="content">
+
+
       <div class="pill-tabs">
         <button class="pill-tab active" data-side="all">All Trades</button>
         <button class="pill-tab" data-side="Long">↑ Long Side</button>
         <button class="pill-tab" data-side="Short">↓ Short Side</button>
       </div>
 
-      <div class="kpi-row" id="kpiRow1" style="grid-template-columns:repeat(5,1fr);"></div>
+      <div class="kpi-row" id="kpiRow1" ></div>
 
       <div class="panel" id="symbolPanel" style="margin-top:20px;">
         <div class="page-head-row" style="margin-bottom:14px;">

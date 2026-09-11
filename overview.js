@@ -108,6 +108,7 @@ function renderPortfolioChart() {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { display: false }, ticks: { color: "#7f93a3", font: { size: 10.5 } } },

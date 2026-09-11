@@ -12,7 +12,7 @@
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar">
     <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
-     <ul class="nav-list">
+    <ul class="nav-list">
       <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
       <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
       <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
@@ -42,7 +42,7 @@
           <h2>Open Trades</h2>
           <p>Track your active positions and their current P&amp;L.</p>
         </div>
-        <div style="display:flex;gap:10px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button class="btn" id="syncPricesBtn">🔄 Sync Prices</button>
           <button class="btn" id="exportCsvBtn">⬇ Export CSV</button>
           <button class="btn btn-primary" id="openAddTradeBtn">＋ Add Trade</button>
@@ -51,7 +51,7 @@
 
       <div class="sync-note" id="syncNote" style="margin-bottom:16px;"></div>
 
-      <div class="kpi-row" id="kpiRow" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;"></div>
+      <div class="kpi-row" id="kpiRow" style="margin-bottom:14px;"></div>
 
       <div class="panel" style="margin-bottom:20px;">
         <div class="toolbar">

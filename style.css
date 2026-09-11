@@ -34,7 +34,10 @@ html, body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
+.app-shell { min-width: 0; }
+.main { min-width: 0; overflow-x: hidden; }
 
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
@@ -130,7 +133,7 @@ input, select, textarea { font-family: inherit; }
   margin: 0;
   font-weight: 700;
 }
-.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .date-range {
   display: flex;
   align-items: center;
@@ -171,7 +174,7 @@ input, select, textarea { font-family: inherit; }
 /* ---------------- KPI tiles ---------------- */
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
   margin-bottom: 20px;
 }
@@ -197,6 +200,13 @@ input, select, textarea { font-family: inherit; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .panel-head h3 { margin: 0; font-size: 14.5px; font-weight: 700; }
 .grid-2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; }
+
+/* Fixed-height chart container so Chart.js's responsive resize can never
+   blow up the canvas height (its default aspect-ratio math is based on the
+   canvas's default 300px intrinsic width, which explodes once the real
+   container is much wider than that). */
+.chart-wrap { position: relative; width: 100%; height: 260px; }
+.chart-wrap canvas { max-width: 100%; }
 
 .stat-list { display: flex; flex-direction: column; }
 .stat-row {
@@ -617,19 +627,57 @@ tr.row-link:hover .chevron-btn { color: var(--accent); }
 }
 
 /* ---------------- Responsive ---------------- */
+
+/* Laptop screens (13"–15", ~1280–1440px). Tighten spacing/typography so
+   nothing forces a horizontal scrollbar on the page itself; tables still
+   scroll horizontally within .table-wrap if they need to. */
+@media (max-width: 1440px) {
+  :root { --sidebar-w: 208px; }
+  .content { padding: 18px 20px 50px; }
+  .topbar { padding: 14px 20px; }
+  .kpi-tile { padding: 14px 14px 12px; }
+  .kt-val { font-size: 19px; }
+  .modal-lg { max-width: min(90vw, 720px); }
+  .modal-xl { max-width: min(94vw, 880px); }
+  .mini-stat-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 1280px) {
+  :root { --sidebar-w: 188px; }
+  html, body { font-size: 13px; }
+  .content { padding: 16px 18px 46px; }
+  .sidebar { padding: 16px 10px; }
+  .brand { font-size: 13.5px; }
+  .nav-item { padding: 8px 10px; font-size: 13px; }
+  .kpi-row { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .kpi-tile { padding: 12px 12px 10px; }
+  .kt-val { font-size: 17px; }
+  .kt-label { font-size: 11.5px; }
+  .grid-2 { gap: 10px; }
+  .panel { padding: 14px; }
+  .chart-wrap { height: 220px; }
+  table.data-table th, table.data-table td { padding: 8px 9px; font-size: 12px; }
+  .modal-body.two-col { gap: 14px; }
+  .quick-actions { gap: 10px; }
+}
+
 @media (max-width: 1100px) {
-  .kpi-row { grid-template-columns: repeat(2, 1fr); }
   .grid-2 { grid-template-columns: 1fr; }
   .modal-body.two-col { grid-template-columns: 1fr; }
   .cal-summary { grid-template-columns: repeat(2, 1fr); }
+  .mini-stat-row { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 720px) {
-  .sidebar { position: fixed; left: -260px; z-index: 900; transition: left 0.2s; box-shadow: var(--shadow); }
+  .sidebar { position: fixed; left: -260px; z-index: 900; transition: left 0.2s; box-shadow: var(--shadow); width: 230px; }
   .sidebar.open { left: 0; }
   #menuToggle { display: inline-flex !important; }
   .kpi-row { grid-template-columns: 1fr; }
   .quick-actions { grid-template-columns: 1fr; }
-  .content { padding: 16px; }
+  .content { padding: 14px; }
   .cal-grid { gap: 5px; }
   .cal-cell { min-height: 60px; padding: 5px; }
+  .modal-header, .modal-body, .modal-footer, .symbol-modal-head, .symbol-modal-toolbar { padding-left: 16px; padding-right: 16px; }
+  .mini-stat-row { grid-template-columns: repeat(2, 1fr); padding: 14px 16px 4px; }
+  .page-head-row { flex-direction: column; align-items: stretch; }
+  .page-head-row > div:not(.page-head) { display: flex; flex-wrap: wrap; }
 }
