@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Realised Profit — Trading Strategy Simulator</title>
 <link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app-shell">
 
   <aside class="sidebar">
-    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy<br />Simulator</div>
     <ul class="nav-list">
       <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
       <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
@@ -18,6 +19,11 @@
       <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
       <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
     </ul>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-quote">
+      <span class="sq-icon">💡</span>
+      <span class="sq-text"><b>Trading Strategy Simulator</b><em>"Better decisions → Higher returns"</em></span>
+    </div>
     <div class="sidebar-foot">
       <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
     </div>
@@ -25,8 +31,9 @@
 
   <main class="main">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-left">
         <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <span class="brand-mark">📈</span>
         <h1>Trading Strategy Simulator</h1>
       </div>
       <div class="topbar-right">
@@ -36,16 +43,46 @@
 
     <div class="content">
 
-      <div class="pill-tabs">
-        <a class="pill-tab" href="realised-profit.html">📄 By Trade</a>
-        <a class="pill-tab" href="by-symbol.html">🏷️ By Symbol</a>
+      <div class="page-head-row">
+        <div class="page-head">
+          <h2>Realised Profit</h2>
+          <p>Detailed analysis of your closed trades and profitability.</p>
+        </div>
+        <div class="seg-toggle" id="periodToggle">
+          <button class="active" data-period="monthly">Monthly</button>
+          <button data-period="custom">Custom</button>
+        </div>
       </div>
 
       <div class="kpi-row" id="kpiRow"></div>
 
-      <div class="panel">
-        <div class="toolbar" style="margin-bottom:14px;">
-          <div class="search-box">🔎 <input type="text" id="searchBox" placeholder="Search by symbol…" /></div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><h3>Equity Curve</h3></div>
+          <div class="chart-wrap"><canvas id="equityChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Profit by Sectors</h3></div>
+          <div class="donut-block">
+            <div class="donut-wrap">
+              <canvas id="sectorDonut"></canvas>
+              <div class="donut-center">
+                <div class="dc-val" id="sectorDonutVal">—</div>
+                <div class="dc-label">Total</div>
+              </div>
+            </div>
+            <div class="legend-list" id="sectorLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px;">
+        <div class="page-head-row" style="margin-bottom:14px;">
+          <h3 style="margin:0;font-size:14.5px;">Realised Trades</h3>
+          <div class="toolbar" style="margin:0;">
+            <div class="search-box">🔎 <input type="text" id="searchBox" placeholder="Search by symbol…" /></div>
+            <button class="btn btn-sm" id="exportCsvBtn">⬇ Export CSV</button>
+          </div>
         </div>
         <div class="table-wrap">
           <table class="data-table" id="realisedTable"></table>

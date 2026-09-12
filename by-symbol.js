@@ -1,34 +1,14 @@
 /**
- * by-symbol.js — Realised Profit analysed by symbol, side and strategy.
+ * by-symbol.js — Realised Profit analysed by symbol.
  * Reuses the same trade schema / calcTradePnl from utils.js and the same
- * Api from api.js as every other page in the app.
+ * Api from api.js as every other page in the app. Symbol names, sector
+ * mapping and avatar colors come from the shared helpers in utils.js.
  */
 let TRADES = [];
-let sideFilter = "all"; // all | Long | Short
+let profitFilter = "all"; // all | profitable | losing
 let searchTerm = "";
 let currentPage = 1;
 const PAGE_SIZE = 10;
-
-// Optional friendly names for common symbols — purely cosmetic, falls back
-// to the raw symbol when unknown.
-const SYMBOL_NAMES = {
-  RELIANCE: "Reliance Industries Limited",
-  TCS: "Tata Consultancy Services",
-  HDFCBANK: "HDFC Bank Limited",
-  ICICIBANK: "ICICI Bank Limited",
-  INFY: "Infosys Limited",
-  BANKNIFTY: "Bank Nifty Index",
-  NIFTY: "Nifty 50 Index",
-  AXISBANK: "Axis Bank Limited",
-  ITC: "ITC Limited",
-  LT: "Larsen & Toubro Limited",
-  SBIN: "State Bank of India",
-  WIPRO: "Wipro Limited",
-  MARUTI: "Maruti Suzuki India Limited",
-};
-function symbolName(sym) {
-  return SYMBOL_NAMES[sym] || "—";
-}
 
 async function init() {
   try {
@@ -41,102 +21,13 @@ async function init() {
 }
 
 function closedList() {
-  let arr = withCalc(TRADES).filter((t) => t.status === "Closed");
-  if (sideFilter !== "all") arr = arr.filter((t) => t.direction === sideFilter);
-  return arr;
+  return withCalc(TRADES).filter((t) => t.status === "Closed");
 }
 
 function renderAll() {
   renderTopKpis();
   renderSymbolTable();
-}
-
-/* ==================== TOP-LEVEL KPI ROW ==================== */
-function renderTopKpis() {
-  const closed = closedList();
-  const winners = closed.filter((t) => t.pnl > 0);
-  const losers = closed.filter((t) => t.pnl <= 0);
-  const totalRealisedProfit = winners.reduce((s, t) => s + t.pnl, 0);
-  const totalLoss = losers.reduce((s, t) => s + Math.abs(t.pnl), 0);
-  const netProfit = totalRealisedProfit - totalLoss;
-  const winRate = closed.length ? (winners.length / closed.length) * 100 : 0;
-  const avgProfit = winners.length ? totalRealisedProfit / winners.length : 0;
-  const avgLoss = losers.length ? totalLoss / losers.length : 0;
-
-  const maxProfitTrade = winners.reduce((m, t) => (!m || t.pnl > m.pnl ? t : m), null);
-  const maxLossTrade = losers.reduce((m, t) => (!m || t.pnl < m.pnl ? t : m), null);
-
-  const rrVals = closed.map(rrRatio).filter((v) => v !== null);
-  const avgRR = rrVals.length ? rrVals.reduce((s, v) => s + v, 0) / rrVals.length : 0;
-
-  const { drawdown, drawdownPct } = maxDrawdown(closed);
-
-  document.getElementById("kpiRow1").innerHTML = `
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Total Realised Profit</span><span class="kt-icon">💼</span></div>
-      <div class="kt-val pos">${fmtINR(totalRealisedProfit)}</div>
-      <div class="kt-sub">${winners.length} winning trades</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Total Loss</span><span class="kt-icon">🩸</span></div>
-      <div class="kt-val neg">${fmtINR(totalLoss)}</div>
-      <div class="kt-sub">${losers.length} losing trades</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Net Profit</span><span class="kt-icon">📈</span></div>
-      <div class="kt-val ${netProfit >= 0 ? "pos" : "neg"}">${fmtINR(netProfit)}</div>
-      <div class="kt-sub">${closed.length} closed trades</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Max Profit (single trade)</span><span class="kt-icon">🏆</span></div>
-      <div class="kt-val pos">${maxProfitTrade ? fmtINR(maxProfitTrade.pnl) : "—"}</div>
-      <div class="kt-sub">${maxProfitTrade ? `(${maxProfitTrade.symbol})` : "No winners yet"}</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Max Loss (single trade)</span><span class="kt-icon">⚠️</span></div>
-      <div class="kt-val neg">${maxLossTrade ? fmtINR(Math.abs(maxLossTrade.pnl)) : "—"}</div>
-      <div class="kt-sub">${maxLossTrade ? `(${maxLossTrade.symbol})` : "No losers yet"}</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Max Drawdown</span><span class="kt-icon">📉</span></div>
-      <div class="kt-val neg">${fmtINR(drawdown)}</div>
-      <div class="kt-sub">${drawdownPct.toFixed(1)}%</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Risk Reward Ratio</span><span class="kt-icon">⚖️</span></div>
-      <div class="kt-val">1 : ${avgRR ? avgRR.toFixed(1) : "—"}</div>
-      <div class="kt-sub">Avg.</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Win Rate</span><span class="kt-icon">🎯</span></div>
-      <div class="kt-val">${winRate.toFixed(1)}%</div>
-      <div class="kt-sub">(${winners.length} / ${closed.length} trades)</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Avg. Profit (per trade)</span><span class="kt-icon">📗</span></div>
-      <div class="kt-val pos">${fmtINR(avgProfit)}</div>
-      <div class="kt-sub">Winning trades</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Avg. Loss (per trade)</span><span class="kt-icon">📕</span></div>
-      <div class="kt-val neg">${fmtINR(avgLoss)}</div>
-      <div class="kt-sub">Losing trades</div>
-    </div>`;
-}
-
-function maxDrawdown(closed) {
-  const sorted = [...closed].sort((a, b) => new Date(a.exitDate) - new Date(b.exitDate));
-  let equity = 0, peak = 0, maxDd = 0, maxDdPct = 0;
-  sorted.forEach((t) => {
-    equity += t.pnl;
-    if (equity > peak) peak = equity;
-    const dd = peak - equity;
-    if (dd > maxDd) {
-      maxDd = dd;
-      maxDdPct = peak > 0 ? (dd / peak) * 100 : 0;
-    }
-  });
-  return { drawdown: maxDd, drawdownPct: maxDdPct };
+  renderInsights();
 }
 
 /* ==================== SYMBOL AGGREGATION ==================== */
@@ -154,18 +45,57 @@ function aggregateBySymbol() {
     const losses = trades.filter((t) => t.pnl <= 0).length;
     const netPnl = trades.reduce((s, t) => s + t.pnl, 0);
     const avgPnl = trades.length ? netPnl / trades.length : 0;
-    const maxProfit = Math.max(0, ...trades.map((t) => t.pnl));
-    const maxLoss = Math.min(0, ...trades.map((t) => t.pnl));
+    const bestTrade = trades.reduce((m, t) => (!m || t.pnl > m.pnl ? t : m), null);
+    const worstTrade = trades.reduce((m, t) => (!m || t.pnl < m.pnl ? t : m), null);
     const winRate = trades.length ? (wins / trades.length) * 100 : 0;
-    const rrVals = trades.map(rrRatio).filter((v) => v !== null);
-    const avgRR = rrVals.length ? rrVals.reduce((s, v) => s + v, 0) / rrVals.length : null;
-    return { symbol: g.symbol, trades, count: trades.length, wins, losses, netPnl, avgPnl, maxProfit, maxLoss, winRate, avgRR };
+    const avgPnlPct = trades.length ? trades.reduce((s, t) => s + t.pnlPct, 0) / trades.length : 0;
+    return { symbol: g.symbol, trades, count: trades.length, wins, losses, netPnl, avgPnl, avgPnlPct, bestTrade, worstTrade, winRate };
   });
 }
 
-function renderSymbolTable() {
+function filteredSymbolRows() {
   let rows = aggregateBySymbol();
+  if (profitFilter === "profitable") rows = rows.filter((r) => r.netPnl > 0);
+  else if (profitFilter === "losing") rows = rows.filter((r) => r.netPnl <= 0);
   if (searchTerm) rows = rows.filter((r) => r.symbol.toLowerCase().includes(searchTerm.toLowerCase()));
+  return rows;
+}
+
+/* ==================== TOP-LEVEL KPI ROW ==================== */
+function renderTopKpis() {
+  const all = aggregateBySymbol();
+  const profitable = all.filter((r) => r.netPnl > 0);
+  const losing = all.filter((r) => r.netPnl <= 0);
+  const closed = closedList();
+  const avgPnl = closed.length ? closed.reduce((s, t) => s + t.pnl, 0) / closed.length : 0;
+  const avgPnlPct = closed.length ? closed.reduce((s, t) => s + t.pnlPct, 0) / closed.length : 0;
+
+  document.getElementById("kpiRow1").innerHTML = `
+    <div class="kpi-tile">
+      <div class="kt-top"><span class="kt-label">Total Symbols</span><span class="kt-icon-badge" style="background:var(--blue-soft);color:var(--blue);">🏷️</span></div>
+      <div class="kt-val">${all.length}</div>
+      <div class="kt-sub">Traded this period</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kt-top"><span class="kt-label">Profitable Symbols</span><span class="kt-icon-badge" style="background:var(--green-soft);color:var(--green);">📈</span></div>
+      <div class="kt-val pos">${profitable.length}</div>
+      <div class="kt-sub pos">${all.length ? ((profitable.length / all.length) * 100).toFixed(1) : "0.0"}%</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kt-top"><span class="kt-label">Losing Symbols</span><span class="kt-icon-badge" style="background:var(--red-soft);color:var(--red);">📉</span></div>
+      <div class="kt-val neg">${losing.length}</div>
+      <div class="kt-sub neg">${all.length ? ((losing.length / all.length) * 100).toFixed(1) : "0.0"}%</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kt-top"><span class="kt-label">Avg. P&amp;L (per trade)</span><span class="kt-icon-badge" style="background:var(--purple-soft);color:var(--purple);">📊</span></div>
+      <div class="kt-val ${avgPnl >= 0 ? "pos" : "neg"}">${fmtINR(avgPnl)}</div>
+      <div class="kt-sub ${avgPnlPct >= 0 ? "pos" : "neg"}">${fmtPct(avgPnlPct)}</div>
+    </div>`;
+}
+
+/* ==================== SYMBOL TABLE ==================== */
+function renderSymbolTable() {
+  let rows = filteredSymbolRows();
   rows.sort((a, b) => b.netPnl - a.netPnl);
 
   const total = rows.length;
@@ -178,30 +108,32 @@ function renderSymbolTable() {
   if (!total) {
     table.innerHTML = "";
     table.parentElement.querySelector(".empty-state")?.remove();
-    table.parentElement.insertAdjacentHTML("beforeend", '<div class="empty-state">No closed trades match your filters.</div>');
-    document.getElementById("pagination").innerHTML = "";
-    document.getElementById("resultsCount").textContent = "Showing 0 of 0 symbols";
+    table.parentElement.insertAdjacentHTML("beforeend", '<div class="empty-state">No symbols match your filters.</div>');
+    document.getElementById("resultsCount").textContent = "";
+    renderPagination(1);
     return;
   }
   table.parentElement.querySelector(".empty-state")?.remove();
 
   table.innerHTML = `
     <thead><tr>
-      <th>#</th><th>Symbol</th><th>Trades</th><th>Win / Loss</th><th>Net P&amp;L</th><th>Avg. P&amp;L</th>
-      <th>Max Profit</th><th>Max Loss</th><th>Win Rate</th><th>R:R Ratio</th><th></th>
+      <th>Symbol</th><th>Trades</th><th>Win Rate</th><th>Total P&amp;L</th><th>Avg P&amp;L</th>
+      <th>Best Trade</th><th>Worst Trade</th><th></th>
     </tr></thead>
-    <tbody>${pageRows.map((r, i) => `
+    <tbody>${pageRows.map((r) => `
       <tr class="row-link" data-symbol="${r.symbol}">
-        <td>${start + i + 1}</td>
-        <td><div class="sym-cell"><span class="sym-avatar">${symbolIcon(r.symbol)}</span>${r.symbol}</div></td>
+        <td>
+          <div class="sym-cell">${avatarHtml(r.symbol, 30)}<span>
+            <div style="font-weight:700;">${r.symbol}</div>
+            <span class="cell-sub">${symbolName(r.symbol)}</span>
+          </span></div>
+        </td>
         <td>${r.count}</td>
-        <td><span class="pos">${r.wins}</span> / <span class="neg">${r.losses}</span></td>
-        <td class="pnl ${r.netPnl >= 0 ? "pos" : "neg"}">${fmtINR(r.netPnl)}</td>
-        <td class="pnl ${r.avgPnl >= 0 ? "pos" : "neg"}">${fmtINR(r.avgPnl)}</td>
-        <td class="pos">${fmtINR(r.maxProfit)}</td>
-        <td class="neg">${fmtINR(Math.abs(r.maxLoss))}</td>
-        <td>${r.winRate.toFixed(1)}%</td>
-        <td class="${r.avgRR !== null && r.avgRR < 1 ? "neg" : ""}">${r.avgRR !== null ? r.avgRR.toFixed(1) + " : 1" : "—"}</td>
+        <td>${r.winRate.toFixed(0)}%</td>
+        <td class="pnl ${r.netPnl >= 0 ? "pos" : "neg"}">${r.netPnl >= 0 ? "+" : "-"}${fmtINR(Math.abs(r.netPnl))}</td>
+        <td class="pnl ${r.avgPnl >= 0 ? "pos" : "neg"}">${r.avgPnl >= 0 ? "+" : "-"}${fmtINR(Math.abs(r.avgPnl))}</td>
+        <td class="pos">${r.bestTrade && r.bestTrade.pnl > 0 ? "+" + fmtINR(r.bestTrade.pnl) : "—"}</td>
+        <td class="neg">${r.worstTrade && r.worstTrade.pnl < 0 ? fmtINR(r.worstTrade.pnl) : "—"}</td>
         <td class="actions-cell"><button class="chevron-btn">›</button></td>
       </tr>`).join("")}</tbody>`;
 
@@ -212,10 +144,6 @@ function renderSymbolTable() {
   document.getElementById("resultsCount").textContent =
     `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total} symbols`;
   renderPagination(totalPages);
-}
-
-function symbolIcon(sym) {
-  return (sym || "?").charAt(0).toUpperCase();
 }
 
 function renderPagination(totalPages) {
@@ -236,6 +164,57 @@ function renderPagination(totalPages) {
       window.scrollTo({ top: document.getElementById("symbolPanel").offsetTop - 20, behavior: "smooth" });
     });
   });
+}
+
+/* ==================== PERFORMANCE INSIGHTS ==================== */
+function renderInsights() {
+  const rows = aggregateBySymbol();
+  const best = rows.length ? rows.reduce((m, r) => (r.netPnl > m.netPnl ? r : m)) : null;
+  const mostTraded = rows.length ? rows.reduce((m, r) => (r.count > m.count ? r : m)) : null;
+  // "Most volatile" ≈ largest single-trade swing (best or worst) relative to its own average.
+  const mostVolatile = rows.length
+    ? rows.reduce((m, r) => {
+        const swing = Math.max(Math.abs(r.bestTrade?.pnlPct || 0), Math.abs(r.worstTrade?.pnlPct || 0));
+        const mSwing = m ? Math.max(Math.abs(m.bestTrade?.pnlPct || 0), Math.abs(m.worstTrade?.pnlPct || 0)) : -Infinity;
+        return swing > mSwing ? r : m;
+      }, null)
+    : null;
+  const volatileTrade = mostVolatile
+    ? (Math.abs(mostVolatile.worstTrade?.pnlPct || 0) > Math.abs(mostVolatile.bestTrade?.pnlPct || 0) ? mostVolatile.worstTrade : mostVolatile.bestTrade)
+    : null;
+
+  document.getElementById("insightGrid").innerHTML = `
+    <div class="insight-tile">
+      <span class="ins-ico" style="background:var(--yellow-soft);color:var(--yellow);">🏆</span>
+      <span>
+        <div class="ins-label">Best Performing Symbol</div>
+        <div class="ins-val">${best ? best.symbol : "—"}</div>
+        <div class="ins-sub pos">${best ? `${fmtINR(best.netPnl)} (${best.winRate.toFixed(0)}%)` : "—"}</div>
+      </span>
+    </div>
+    <div class="insight-tile">
+      <span class="ins-ico" style="background:var(--red-soft);color:var(--red);">📊</span>
+      <span>
+        <div class="ins-label">Most Volatile</div>
+        <div class="ins-val">${mostVolatile ? mostVolatile.symbol : "—"}</div>
+        <div class="ins-sub ${volatileTrade && volatileTrade.pnl >= 0 ? "pos" : "neg"}">${volatileTrade ? `${fmtPct(volatileTrade.pnlPct)} (worst trade)` : "—"}</div>
+      </span>
+    </div>
+    <div class="insight-tile">
+      <span class="ins-ico" style="background:var(--blue-soft);color:var(--blue);">🕒</span>
+      <span>
+        <div class="ins-label">Most Traded</div>
+        <div class="ins-val">${mostTraded ? mostTraded.symbol : "—"}</div>
+        <div class="ins-sub muted">${mostTraded ? `${mostTraded.count} trade${mostTraded.count === 1 ? "" : "s"}` : "—"}</div>
+      </span>
+    </div>
+    <div class="insight-tile">
+      <span class="ins-ico" style="background:var(--accent-soft);color:var(--accent);">💡</span>
+      <span>
+        <div class="ins-label">Key Takeaway</div>
+        <div class="ins-sub muted" style="margin-top:5px;">Focus on sectors with strong momentum and avoid high volatility stocks.</div>
+      </span>
+    </div>`;
 }
 
 /* ==================== SYMBOL DETAIL MODAL ==================== */
@@ -265,7 +244,11 @@ function renderSymbolModal() {
   const maxLoss = Math.min(0, ...trades.map((t) => t.pnl));
   const winRate = trades.length ? (wins / trades.length) * 100 : 0;
 
-  document.getElementById("symAvatarBig").textContent = symbolIcon(modalSymbol);
+  const av = avatarStyle(modalSymbol);
+  const avatarBig = document.getElementById("symAvatarBig");
+  avatarBig.textContent = (modalSymbol || "?").charAt(0).toUpperCase();
+  avatarBig.style.background = av.bg;
+  avatarBig.style.color = av.fg;
   document.getElementById("symTitle").textContent = modalSymbol;
   document.getElementById("symSubtitle").textContent = symbolName(modalSymbol);
 
@@ -328,13 +311,13 @@ function renderSymbolModal() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".pill-tab[data-side]:not(.modal-side-tab)").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      sideFilter = btn.dataset.side;
-      currentPage = 1;
-      document.querySelectorAll(".pill-tab[data-side]:not(.modal-side-tab)").forEach((b) => b.classList.toggle("active", b === btn));
-      renderAll();
-    });
+  document.getElementById("profitFilterToggle")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-filter]");
+    if (!btn) return;
+    profitFilter = btn.dataset.filter;
+    currentPage = 1;
+    document.querySelectorAll("#profitFilterToggle button").forEach((b) => b.classList.toggle("active", b === btn));
+    renderSymbolTable();
   });
 
   document.getElementById("searchBox")?.addEventListener("input", (e) => {
@@ -345,8 +328,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("exportCsvBtn")?.addEventListener("click", () => {
     const rows = aggregateBySymbol();
-    const headers = ["Symbol", "Trades", "Wins", "Losses", "Net P&L", "Avg P&L", "Max Profit", "Max Loss", "Win Rate %", "Avg R:R"];
-    const csvRows = rows.map((r) => [r.symbol, r.count, r.wins, r.losses, r.netPnl.toFixed(2), r.avgPnl.toFixed(2), r.maxProfit.toFixed(2), r.maxLoss.toFixed(2), r.winRate.toFixed(1), r.avgRR !== null ? r.avgRR.toFixed(2) : ""]);
+    const headers = ["Symbol", "Trades", "Wins", "Losses", "Net P&L", "Avg P&L", "Win Rate %"];
+    const csvRows = rows.map((r) => [r.symbol, r.count, r.wins, r.losses, r.netPnl.toFixed(2), r.avgPnl.toFixed(2), r.winRate.toFixed(1)]);
     const csv = [headers, ...csvRows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);

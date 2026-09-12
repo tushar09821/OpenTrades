@@ -50,6 +50,72 @@ function rrRatio(t) {
   return reward / risk;
 }
 
+/* ---------------- SYMBOL PRESENTATION (avatar colors, names, sectors) ----------------
+   Purely cosmetic metadata used to render symbol avatars, full names and
+   sector groupings consistently across Overview / Open Trades / Realised
+   Profit / By Symbol. Falls back gracefully for any symbol not listed. */
+const SYMBOL_NAMES = {
+  RELIANCE: "Reliance Industries Limited",
+  TCS: "Tata Consultancy Services",
+  HDFCBANK: "HDFC Bank Limited",
+  ICICIBANK: "ICICI Bank Limited",
+  INFY: "Infosys Limited",
+  BANKNIFTY: "Bank Nifty Index",
+  NIFTY: "Nifty 50 Index",
+  AXISBANK: "Axis Bank Limited",
+  ITC: "ITC Limited",
+  LT: "Larsen & Toubro Limited",
+  SBIN: "State Bank of India",
+  WIPRO: "Wipro Limited",
+  MARUTI: "Maruti Suzuki India Limited",
+  NESTLEIND: "Nestle India Limited",
+  POLYCAB: "Polycab India Limited",
+  ULTRACEMCO: "UltraTech Cement Limited",
+};
+function symbolName(sym) {
+  return SYMBOL_NAMES[sym] || "—";
+}
+
+const SECTOR_MAP = {
+  ULTRACEMCO: "Cement", SHREECEM: "Cement", ACC: "Cement", AMBUJACEM: "Cement",
+  NESTLEIND: "FMCG", HINDUNILVR: "FMCG", ITC: "FMCG", BRITANNIA: "FMCG", DABUR: "FMCG",
+  MARUTI: "Auto", TATAMOTORS: "Auto", M_M: "Auto", BAJAJ_AUTO: "Auto", EICHERMOT: "Auto",
+  POLYCAB: "Capital Goods", SIEMENS: "Capital Goods", ABB: "Capital Goods", HAVELLS: "Capital Goods", CUMMINSIND: "Capital Goods",
+  SBIN: "Financials", HDFCBANK: "Financials", ICICIBANK: "Financials", AXISBANK: "Financials", KOTAKBANK: "Financials",
+  TCS: "IT", INFY: "IT", WIPRO: "IT", HCLTECH: "IT", TECHM: "IT",
+  RELIANCE: "Energy", ONGC: "Energy", NTPC: "Energy", POWERGRID: "Energy",
+};
+function sectorOf(sym) {
+  return SECTOR_MAP[String(sym || "").toUpperCase()] || "Others";
+}
+
+// A small fixed palette so each symbol's avatar reliably gets the same
+// distinct color across every page/session (hashed by symbol string).
+const AVATAR_PALETTE = [
+  { bg: "var(--blue-soft)", fg: "var(--blue)" },
+  { bg: "var(--accent-soft)", fg: "var(--accent)" },
+  { bg: "var(--pink-soft)", fg: "var(--pink)" },
+  { bg: "var(--purple-soft)", fg: "var(--purple)" },
+  { bg: "var(--yellow-soft)", fg: "var(--yellow)" },
+  { bg: "var(--orange-soft)", fg: "var(--orange)" },
+  { bg: "var(--cyan-soft)", fg: "var(--cyan)" },
+];
+function avatarStyle(sym) {
+  const s = String(sym || "?");
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
+function avatarHtml(sym, size) {
+  const { bg, fg } = avatarStyle(sym);
+  const dim = size || 30;
+  return `<span class="sym-avatar" style="background:${bg};color:${fg};width:${dim}px;height:${dim}px;">${(sym || "?").charAt(0).toUpperCase()}</span>`;
+}
+
+/* A small palette used for chart series / donut slices, distinct from the
+   avatar palette above so charts don't visually collide with row avatars. */
+const CHART_PALETTE = ["#17b6a4", "#38bdf8", "#a78bfa", "#f472b6", "#eab308", "#fb923c", "#22d3ee", "#f43f5e"];
+
 /* ---------------- MISC HELPERS ---------------- */
 function groupBy(list, fn) {
   return list.reduce((acc, item) => {

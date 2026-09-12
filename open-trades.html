@@ -11,7 +11,7 @@
 
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar">
-    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy<br />Simulator</div>
     <ul class="nav-list">
       <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
       <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
@@ -19,6 +19,11 @@
       <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
       <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
     </ul>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-quote">
+      <span class="sq-icon">💡</span>
+      <span class="sq-text"><b>Trading Strategy Simulator</b><em>"Better decisions → Higher returns"</em></span>
+    </div>
     <div class="sidebar-foot">
       <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
     </div>
@@ -27,12 +32,14 @@
   <!-- ============ MAIN ============ -->
   <main class="main">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-left">
         <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <span class="brand-mark">📈</span>
         <h1>Trading Strategy Simulator</h1>
       </div>
       <div class="topbar-right">
-        <button class="btn" id="backBtn">← Overview</button>
+        <div class="date-range">🗓️ <span>01 Sep 2026 – 09 Sep 2026</span></div>
+        <button class="btn btn-sm" id="filtersBtn">☰ Filters</button>
       </div>
     </div>
 
@@ -51,12 +58,11 @@
 
       <div class="sync-note" id="syncNote" style="margin-bottom:16px;"></div>
 
-      <div class="kpi-row" id="kpiRow" style="margin-bottom:14px;"></div>
+      <div class="kpi-row" id="kpiRow" style="margin-bottom:20px;"></div>
 
       <div class="panel" style="margin-bottom:20px;">
         <div class="toolbar">
           <div class="search-box">🔎 <input type="text" id="searchBox" placeholder="Search by symbol…" /></div>
-          <button class="btn btn-sm" id="filtersBtn">☰ Filters</button>
         </div>
         <div class="filters-bar" id="filtersBar">
           <select id="filterDirection">
@@ -72,12 +78,17 @@
         </div>
 
         <div class="panel-head" style="margin-top:16px;">
-          <h3 id="openTradesHeading">Open Trades</h3>
+          <h3 id="openTradesHeading">Open Trades (4)</h3>
         </div>
         <div class="table-wrap">
           <table class="data-table" id="openTradesTable"></table>
         </div>
         <div class="totals-row" id="openTotalsRow"></div>
+      </div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-head"><h3>Open Trades Summary</h3></div>
+        <div class="summary-strip" id="summaryStrip"></div>
       </div>
 
       <div class="panel">
@@ -196,7 +207,7 @@
     <div class="modal-body">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div id="closeAvatar" style="width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;">R</div>
+          <div id="closeAvatar" style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;">R</div>
           <div>
             <div style="font-weight:700;" id="closeSymbol">—</div>
             <div class="muted" style="font-size:11.5px;" id="closeAssetType">—</div>

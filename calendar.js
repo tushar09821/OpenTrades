@@ -3,6 +3,9 @@
  */
 let TRADES = [];
 let viewYear, viewMonth; // viewMonth: 0-11
+let msumChartInstance = null;
+let showProfitBars = true;
+let showLossBars = true;
 
 async function init() {
   const now = new Date();
@@ -37,7 +40,7 @@ function tradesByDay() {
 function render() {
   renderHeader();
   renderGrid();
-  renderSummary();
+  renderMonthlySummary();
 }
 
 function renderHeader() {
@@ -89,46 +92,70 @@ function renderGrid() {
   });
 }
 
-function renderSummary() {
+function renderMonthlySummary() {
   const byDay = tradesByDay();
   const monthTrades = closedList().filter((t) => {
     const d = new Date(t.exitDate);
     return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
   });
   const totalPnl = monthTrades.reduce((s, t) => s + t.pnl, 0);
-  const wins = monthTrades.filter((t) => t.pnl > 0).length;
-  const losses = monthTrades.filter((t) => t.pnl <= 0).length;
-  const winRate = monthTrades.length ? (wins / monthTrades.length) * 100 : 0;
-  const greenDays = Object.keys(byDay).filter((k) => {
-    const d = new Date(k);
-    return d.getFullYear() === viewYear && d.getMonth() === viewMonth && byDay[k].reduce((s, t) => s + t.pnl, 0) >= 0;
-  }).length;
-  const redDays = Object.keys(byDay).filter((k) => {
-    const d = new Date(k);
-    return d.getFullYear() === viewYear && d.getMonth() === viewMonth && byDay[k].reduce((s, t) => s + t.pnl, 0) < 0;
-  }).length;
+  const invested = monthTrades.reduce((s, t) => s + (parseFloat(t.investedAmount) || t.entryPrice * t.quantity), 0);
+  const totalPct = invested ? (totalPnl / invested) * 100 : 0;
 
-  document.getElementById("calSummary").innerHTML = `
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Month P&amp;L</span><span class="kt-icon">📗</span></div>
-      <div class="kt-val ${totalPnl >= 0 ? "pos" : "neg"}">${totalPnl >= 0 ? "+" : ""}${fmtINR(totalPnl)}</div>
-      <div class="kt-sub">${monthTrades.length} closed trades</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Win Rate</span><span class="kt-icon">🎯</span></div>
-      <div class="kt-val">${winRate.toFixed(1)}%</div>
-      <div class="kt-sub">${wins}W / ${losses}L</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Green Days</span><span class="kt-icon">🟢</span></div>
-      <div class="kt-val pos">${greenDays}</div>
-      <div class="kt-sub">Profitable trading days</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Red Days</span><span class="kt-icon">🔴</span></div>
-      <div class="kt-val neg">${redDays}</div>
-      <div class="kt-sub">Loss-making trading days</div>
-    </div>`;
+  const dayKeysInMonth = Object.keys(byDay).filter((k) => {
+    const d = new Date(k);
+    return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
+  }).sort();
+
+  const winningDays = dayKeysInMonth.filter((k) => byDay[k].reduce((s, t) => s + t.pnl, 0) >= 0).length;
+  const losingDays = dayKeysInMonth.length - winningDays;
+  const totalTradingDays = dayKeysInMonth.length;
+
+  document.getElementById("msumMonth").textContent =
+    new Date(viewYear, viewMonth, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" }) + " · " + monthTrades.length + " closed";
+  document.getElementById("msumTotal").innerHTML = `<span class="${totalPnl >= 0 ? "pos" : "neg"}">${totalPnl >= 0 ? "+" : ""}${fmtINR(totalPnl)}</span>`;
+  document.getElementById("msumSub").innerHTML = `<span class="${totalPct >= 0 ? "pos" : "neg"}">${fmtPct(totalPct)}</span>`;
+  document.getElementById("msumWinDays").textContent = `${winningDays} / ${totalTradingDays}`;
+  document.getElementById("msumLossDays").textContent = `${losingDays} / ${totalTradingDays}`;
+  document.getElementById("msumWinPct").textContent = totalTradingDays ? `${((winningDays / totalTradingDays) * 100).toFixed(1)}%` : "—";
+  document.getElementById("msumLossPct").textContent = totalTradingDays ? `${((losingDays / totalTradingDays) * 100).toFixed(1)}%` : "—";
+
+  renderMsumChart(dayKeysInMonth, byDay);
+}
+
+function renderMsumChart(dayKeysInMonth, byDay) {
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const labels = [];
+  const values = [];
+  const colors = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = new Date(viewYear, viewMonth, d).toISOString().slice(0, 10);
+    const dayPnl = (byDay[key] || []).reduce((s, t) => s + t.pnl, 0);
+    labels.push(String(d));
+    const isProfit = dayPnl >= 0;
+    if ((isProfit && !showProfitBars) || (!isProfit && dayPnl !== 0 && !showLossBars)) {
+      values.push(0);
+    } else {
+      values.push(dayPnl);
+    }
+    colors.push(isProfit ? "#22c55e" : "#f43f5e");
+  }
+
+  const ctx = document.getElementById("msumChart").getContext("2d");
+  if (msumChartInstance) msumChartInstance.destroy();
+  msumChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 3, maxBarThickness: 14 }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "#8998a9", font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+        y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#8998a9", font: { size: 9 }, callback: (v) => fmtNum(v) } },
+      },
+    },
+  });
 }
 
 function openDayModal(dateKey, trades) {
@@ -167,6 +194,17 @@ document.addEventListener("DOMContentLoaded", () => {
     render();
   });
   document.getElementById("dayModalClose").addEventListener("click", () => document.getElementById("dayModalOverlay").classList.remove("active"));
+
+  document.getElementById("legendProfit")?.addEventListener("click", (e) => {
+    showProfitBars = !showProfitBars;
+    e.currentTarget.classList.toggle("on", showProfitBars);
+    render();
+  });
+  document.getElementById("legendLoss")?.addEventListener("click", (e) => {
+    showLossBars = !showLossBars;
+    e.currentTarget.classList.toggle("on", showLossBars);
+    render();
+  });
 });
 
 initAuthGate(init);

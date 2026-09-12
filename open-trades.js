@@ -66,6 +66,7 @@ document.getElementById("syncPricesBtn").addEventListener("click", async () => {
 function renderAll() {
   renderKpiRow();
   renderOpenTradesTable();
+  renderSummaryStrip();
   renderActionsLog();
   populateDatalists();
 }
@@ -83,39 +84,69 @@ function renderKpiRow() {
   const todayPnl = todayClosed.reduce((s, t) => s + t.pnl, 0) + unrealised; // realized today + current open unrealized
   const todayPct = totalInvested ? (todayPnl / totalInvested) * 100 : 0;
 
-  const rrVals = TRADES.map(rrRatio).filter((v) => v !== null);
-  const avgRR = rrVals.length ? rrVals.reduce((s, v) => s + v, 0) / rrVals.length : 0;
-
   document.getElementById("kpiRow").innerHTML = `
     <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Total Open Trades</span><span class="kt-icon">👜</span></div>
+      <div class="kt-top"><span class="kt-label">Total Open Trades</span><span class="kt-icon-badge" style="background:var(--yellow-soft);color:var(--yellow);">👜</span></div>
       <div class="kt-val">${open.length}</div>
       <div class="kt-sub">All positions</div>
     </div>
     <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Total Invested</span><span class="kt-icon">👛</span></div>
+      <div class="kt-top"><span class="kt-label">Total Invested</span><span class="kt-icon-badge" style="background:var(--accent-soft);color:var(--accent);">👛</span></div>
       <div class="kt-val">${fmtINR(totalInvested)}</div>
       <div class="kt-sub">Margin/Capital in use</div>
     </div>
     <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Unrealised P&amp;L</span><span class="kt-icon">📈</span></div>
+      <div class="kt-top"><span class="kt-label">Unrealised P&amp;L</span><span class="kt-icon-badge" style="background:var(--green-soft);color:var(--green);">📈</span></div>
       <div class="kt-val ${unrealised >= 0 ? "pos" : "neg"}">${unrealised >= 0 ? "+" : ""}${fmtINR(unrealised)}</div>
       <div class="kt-sub ${unrealisedPct >= 0 ? "pos" : "neg"}">${fmtPct(unrealisedPct)}</div>
     </div>
     <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Current Value</span><span class="kt-icon">🥧</span></div>
+      <div class="kt-top"><span class="kt-label">Current Value</span><span class="kt-icon-badge" style="background:var(--purple-soft);color:var(--purple);">🥧</span></div>
       <div class="kt-val">${fmtINR(currentValue)}</div>
       <div class="kt-sub">Invested + Unrealised P&amp;L</div>
     </div>
     <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Today's P&amp;L</span><span class="kt-icon">📊</span></div>
+      <div class="kt-top"><span class="kt-label">Today's P&amp;L</span><span class="kt-icon-badge" style="background:var(--blue-soft);color:var(--blue);">📊</span></div>
       <div class="kt-val ${todayPnl >= 0 ? "pos" : "neg"}">${todayPnl >= 0 ? "+" : ""}${fmtINR(todayPnl)}</div>
       <div class="kt-sub ${todayPct >= 0 ? "pos" : "neg"}">${fmtPct(todayPct)}</div>
+    </div>`;
+}
+
+/* ==================== OPEN TRADES SUMMARY STRIP ==================== */
+function renderSummaryStrip() {
+  const open = openTradesList();
+  const totalPnl = open.reduce((s, t) => s + t.pnl, 0);
+  const totalPnlPct = open.length ? open.reduce((s, t) => s + t.pnlPct, 0) / open.length : 0;
+  const profitable = open.filter((t) => t.pnl > 0);
+  const losing = open.filter((t) => t.pnl <= 0);
+  const largestProfit = profitable.reduce((m, t) => (!m || t.pnl > m.pnl ? t : m), null);
+  const largestLoss = losing.reduce((m, t) => (!m || t.pnl < m.pnl ? t : m), null);
+
+  document.getElementById("summaryStrip").innerHTML = `
+    <div class="st-tile">
+      <div class="st-label">Total P&amp;L</div>
+      <div class="st-val ${totalPnl >= 0 ? "pos" : "neg"}">${totalPnl >= 0 ? "+" : ""}${fmtINR(totalPnl)}</div>
+      <div class="st-sub ${totalPnlPct >= 0 ? "pos" : "neg"}">${fmtPct(totalPnlPct)}</div>
     </div>
-    <div class="kpi-tile">
-      <div class="kt-top"><span class="kt-label">Risk/Reward (Avg)</span><span class="kt-icon">⚖️</span></div>
-      <div class="kt-val">${avgRR ? avgRR.toFixed(2) : "—"}</div>
-      <div class="kt-sub">Weighted avg</div>
+    <div class="st-tile">
+      <div class="st-label">Profitable Trades</div>
+      <div class="st-val pos">${profitable.length} / ${open.length}</div>
+      <div class="st-sub">${open.length ? ((profitable.length / open.length) * 100).toFixed(0) : 0}%</div>
+    </div>
+    <div class="st-tile">
+      <div class="st-label">Losing Trades</div>
+      <div class="st-val neg">${losing.length} / ${open.length}</div>
+      <div class="st-sub">${open.length ? ((losing.length / open.length) * 100).toFixed(0) : 0}%</div>
+    </div>
+    <div class="st-tile">
+      <div class="st-label">Largest Profit</div>
+      <div class="st-val pos">${largestProfit ? fmtINR(largestProfit.pnl) : "—"}</div>
+      <div class="st-sub">${largestProfit ? `(${largestProfit.symbol})` : "No winners yet"}</div>
+    </div>
+    <div class="st-tile">
+      <div class="st-label">Largest Loss</div>
+      <div class="st-val neg">${largestLoss ? fmtINR(largestLoss.pnl) : "—"}</div>
+      <div class="st-sub">${largestLoss ? `(${largestLoss.symbol})` : "No losers yet"}</div>
     </div>`;
 }
 
@@ -137,23 +168,29 @@ function renderOpenTradesTable() {
 
   table.innerHTML = `
     <thead><tr>
-      <th>Stock / Type</th><th>Entry Date &amp; Time</th><th>Qty</th><th>Entry Price</th><th>LTP</th><th>P&amp;L</th><th>P&amp;L %</th>
-      <th>Invested</th><th>Target</th><th>Stop Loss</th><th>R:R</th><th></th>
+      <th>Symbol</th><th>Type</th><th>Qty</th><th>Entry Price</th><th>LTP</th><th>P&amp;L %</th><th>P&amp;L ₹</th>
+      <th>Invested</th><th>Current Value</th><th>Stop Loss</th><th>R:R</th><th>Actions</th>
     </tr></thead>
     <tbody>${arr.map((t) => {
       const rr = rrRatio(t);
+      const invested = parseFloat(t.investedAmount) || t.entryPrice * t.quantity;
       return `<tr data-id="${t.id}">
-        <td><div style="font-weight:700;">${t.symbol}</div><span class="pill ${t.direction === "Long" ? "long" : "short"}">${t.direction}</span> <span class="muted" style="font-size:10.5px;">${t.assetType || ""}</span></td>
-        <td>${t.entryDate ? `${dayLabel(t.entryDate)}<br><span class="muted" style="font-size:10.5px;">${timeLabel(t.entryDate)}</span>` : "—"}</td>
+        <td>
+          <div class="sym-cell">${avatarHtml(t.symbol, 30)}<span>
+            <div style="font-weight:700;">${t.symbol}</div>
+            <span class="cell-sub">${symbolName(t.symbol)}</span>
+          </span></div>
+        </td>
+        <td><span class="pill ${t.direction === "Long" ? "buy" : "sell"}">${t.direction === "Long" ? "BUY" : "SELL"}</span></td>
         <td>${t.quantity}</td>
         <td>${fmtNum(t.entryPrice)}</td>
         <td><span class="ltp-cell" data-id="${t.id}" style="cursor:pointer;border-bottom:1px dashed var(--border);" title="Click to update LTP">${fmtNum(t.ltp || t.entryPrice)}</span></td>
-        <td class="pnl ${t.pnl >= 0 ? "pos" : "neg"}">${fmtINR(t.pnl)}</td>
         <td class="pnl ${t.pnl >= 0 ? "pos" : "neg"}">${fmtPct(t.pnlPct)}</td>
-        <td>${fmtINR(parseFloat(t.investedAmount) || t.entryPrice * t.quantity)}</td>
-        <td>${t.targetPrice ? fmtNum(t.targetPrice) : "—"}</td>
+        <td class="pnl ${t.pnl >= 0 ? "pos" : "neg"}">${t.pnl >= 0 ? "+" : "-"}${fmtINR(Math.abs(t.pnl))}</td>
+        <td>${fmtINR(invested)}</td>
+        <td>${fmtINR(invested + t.pnl)}</td>
         <td>${t.stopLoss ? fmtNum(t.stopLoss) : "—"}</td>
-        <td>${rr ? rr.toFixed(2) : "—"}</td>
+        <td>${rr ? "1:" + rr.toFixed(1) : "—"}</td>
         <td class="actions-cell">
           <button class="actions-btn" data-id="${t.id}">⋮</button>
         </td>
@@ -561,7 +598,7 @@ document.getElementById("exportCsvBtn").addEventListener("click", () => {
   a.href = url; a.download = "open-trades-export.csv"; a.click();
   URL.revokeObjectURL(url);
 });
-document.getElementById("backBtn").addEventListener("click", () => (window.location.href = "index.html"));
+document.getElementById("backBtn")?.addEventListener("click", () => (window.location.href = "index.html"));
 
 /* ==================== ADD TRADE MODAL ==================== */
 function openAddTradeModal() {

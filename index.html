@@ -12,7 +12,7 @@
 
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar">
-    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy<br />Simulator</div>
     <ul class="nav-list">
       <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
       <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
@@ -20,6 +20,11 @@
       <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
       <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
     </ul>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-quote">
+      <span class="sq-icon">💡</span>
+      <span class="sq-text"><b>Trading Strategy Simulator</b><em>"Better decisions → Higher returns"</em></span>
+    </div>
     <div class="sidebar-foot">
       <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
     </div>
@@ -28,20 +33,21 @@
   <!-- ============ MAIN ============ -->
   <main class="main">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-left">
         <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <span class="brand-mark">📈</span>
         <h1>Trading Strategy Simulator</h1>
       </div>
       <div class="topbar-right">
-        <div class="date-range">🗓️ <span id="rangeLabel">Last 7 days</span></div>
+        <div class="date-range">🗓️ <span id="rangeLabel">01 Sep 2026 – 09 Sep 2026</span></div>
         <button class="icon-btn" title="Refresh" id="refreshBtn">⟳</button>
       </div>
     </div>
 
     <div class="content">
       <div class="page-head">
-        <h2>Strategy Overview</h2>
-        <p>Track your strategy performance, open trades and realised profits.</p>
+        <h2>Overview</h2>
+        <p>Track your overall performance, portfolio health and trading statistics.</p>
       </div>
 
       <div class="kpi-row" id="kpiRow"><!-- filled by overview.js --></div>
@@ -50,20 +56,39 @@
         <div class="panel">
           <div class="panel-head">
             <h3>Portfolio Value</h3>
-            <select id="rangeSelect" style="background:var(--panel-2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 9px;font-size:12px;">
-              <option value="7">7D</option>
-              <option value="30">30D</option>
-              <option value="90">90D</option>
-            </select>
+            <div class="range-tabs" id="rangeTabs">
+              <button data-days="7" class="active">7D</button>
+              <button data-days="30">30D</button>
+              <button data-days="90">3M</button>
+              <button data-days="365">1Y</button>
+            </div>
           </div>
-          <div class="chart-wrap"><canvas id="portfolioChart"></canvas></div>
+          <div class="chart-wrap">
+            <canvas id="portfolioChart"></canvas>
+            <div class="chart-value-pill" id="chartValuePill">—</div>
+          </div>
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>Performance</h3></div>
-          <div class="stat-list" id="perfStats"><!-- filled by overview.js --></div>
+          <div class="panel-head"><h3>P&amp;L Breakdown</h3></div>
+          <div class="donut-block">
+            <div class="donut-wrap">
+              <canvas id="pnlDonut"></canvas>
+              <div class="donut-center">
+                <div class="dc-val" id="donutWinRate">—</div>
+                <div class="dc-label">Win Rate</div>
+              </div>
+            </div>
+            <div class="legend-list" id="pnlLegend"><!-- filled by overview.js --></div>
+          </div>
+          <div class="donut-total">
+            <div class="dt-label">Total P&amp;L</div>
+            <div class="dt-val" id="donutTotalPnl">—</div>
+          </div>
         </div>
       </div>
+
+      <div class="info-grid" id="infoGrid"><!-- filled by overview.js --></div>
 
       <div class="page-head" style="margin-top:26px;margin-bottom:0;">
         <h2 style="font-size:15px;">Quick Actions</h2>

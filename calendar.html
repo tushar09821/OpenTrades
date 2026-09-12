@@ -5,19 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Calendar — Trading Strategy Simulator</title>
 <link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app-shell">
 
   <aside class="sidebar">
-    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy Simulator</div>
- <ul class="nav-list">
+    <div class="brand"><span class="brand-mark">📈</span> Trading Strategy<br />Simulator</div>
+    <ul class="nav-list">
       <li><a class="nav-item" href="index.html"><span class="ico">🏠</span> Overview</a></li>
       <li><a class="nav-item" href="open-trades.html"><span class="ico">💼</span> Open Trades</a></li>
       <li><a class="nav-item" href="realised-profit.html"><span class="ico">📒</span> Realised Profit</a></li>
       <li><a class="nav-item" href="by-symbol.html"><span class="ico">🏷️</span> By Symbol</a></li>
       <li><a class="nav-item" href="calendar.html"><span class="ico">🗓️</span> Calendar</a></li>
     </ul>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-quote">
+      <span class="sq-icon">💡</span>
+      <span class="sq-text"><b>Trading Strategy Simulator</b><em>"Better decisions → Higher returns"</em></span>
+    </div>
     <div class="sidebar-foot">
       <a class="nav-item" href="#" id="signOutBtn"><span class="ico">⚙️</span> Settings</a>
     </div>
@@ -25,8 +31,9 @@
 
   <main class="main">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-left">
         <button class="icon-btn" id="menuToggle" style="display:none;">☰</button>
+        <span class="brand-mark">📈</span>
         <h1>Trading Strategy Simulator</h1>
       </div>
       <div class="topbar-right">
@@ -40,22 +47,48 @@
         <p>See your realised P&amp;L laid out day by day, month by month.</p>
       </div>
 
-      <div class="panel">
-        <div class="cal-head">
-          <div class="cal-nav">
-            <button class="icon-btn" id="calPrev">‹</button>
-            <div class="cal-month-label" id="calMonthLabel">—</div>
-            <button class="icon-btn" id="calNext">›</button>
+      <div class="cal-layout">
+        <div class="panel">
+          <div class="cal-head">
+            <div class="cal-nav">
+              <button class="icon-btn" id="calPrev">‹</button>
+              <div class="cal-month-label" id="calMonthLabel">—</div>
+              <button class="icon-btn" id="calNext">›</button>
+            </div>
+            <div class="cal-legend">
+              <span><i style="background:var(--green-soft);border:1px solid var(--green);"></i> Profit day</span>
+              <span><i style="background:var(--red-soft);border:1px solid var(--red);"></i> Loss day</span>
+            </div>
           </div>
-          <div class="cal-legend">
-            <span><i style="background:var(--green-soft);border:1px solid var(--green);"></i> Profit day</span>
-            <span><i style="background:var(--red-soft);border:1px solid var(--red);"></i> Loss day</span>
-          </div>
+          <div class="cal-grid" id="calGrid"></div>
         </div>
-        <div class="cal-grid" id="calGrid"></div>
-      </div>
 
-      <div class="cal-summary" id="calSummary"></div>
+        <div class="panel">
+          <div class="msum-head">
+            <h3>Monthly Summary</h3>
+            <div class="msum-legend">
+              <button class="on profit" id="legendProfit"><i style="background:var(--green);"></i> Profit day</button>
+              <button class="on loss" id="legendLoss"><i style="background:var(--red);"></i> Loss day</button>
+            </div>
+          </div>
+          <div class="msum-month" id="msumMonth">—</div>
+          <div class="msum-total" id="msumTotal">—</div>
+          <div class="msum-sub" id="msumSub">—</div>
+          <div class="msum-stats">
+            <div class="ms-box">
+              <div class="ms-k">Winning Days</div>
+              <div class="ms-v pos" id="msumWinDays">—</div>
+              <div class="ms-p" id="msumWinPct"></div>
+            </div>
+            <div class="ms-box">
+              <div class="ms-k">Losing Days</div>
+              <div class="ms-v neg" id="msumLossDays">—</div>
+              <div class="ms-p" id="msumLossPct"></div>
+            </div>
+          </div>
+          <div class="chart-wrap small"><canvas id="msumChart"></canvas></div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
